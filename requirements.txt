@@ -1,0 +1,36 @@
+# Framework principal
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+
+# Base de datos y ORM
+sqlalchemy[asyncio]==2.0.23
+asyncpg>=0.29.0
+alembic==1.12.1
+psycopg2-binary>=2.9.9
+
+# Seguridad y autenticación
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+cryptography==41.0.7
+
+# Protección y rate limiting
+slowapi==0.1.9
+python-multipart==0.0.6
+
+# Validación y configuración - Updated for Python 3.13 compatibility
+pydantic[email]>=2.8.0
+pydantic-settings>=2.4.0
+email-validator==2.1.0
+
+# Servicios externos
+supabase==2.3.0
+
+# Generación de reportes
+reportlab==4.0.7
+pandas>=2.2.0
+openpyxl==3.1.2
+
+# Utilidades
+python-dotenv==1.0.0
+sqlalchemy-utils==0.41.1
