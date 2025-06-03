@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # URL corregida
-database_url = "postgresql://postgres.yrfzdutcetlquobnynvp:hojaverdeadmin@aws-0-us-east-2.pooler.supabase.com:6543/postgres"
+database_url = 
 
 print(f"Probando conexión con: {database_url}")
 
