@@ -3,10 +3,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy import and_, or_, func
 from uuid import UUID
+import logging
 
 from .base import BaseRepository
 from app.infrastructure.database.models.empleado import Empleado
 from app.presentation.schemas.empleado import EmpleadoCreate, EmpleadoUpdate
+
+logger = logging.getLogger(__name__)
 
 class EmpleadoRepository(BaseRepository[Empleado, EmpleadoCreate, EmpleadoUpdate]):
     """Repositorio específico para empleados"""

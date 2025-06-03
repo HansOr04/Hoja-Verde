@@ -145,11 +145,11 @@ class EmpleadoService(BaseService[Empleado, EmpleadoRepository]):
             "has_prev": page > 1
         }
     
-async def get_empleados_by_area(self, db: AsyncSession, area: str) -> List[Empleado]:
+    async def get_empleados_by_area(self, db: AsyncSession, area: str) -> List[Empleado]:
         """Obtener empleados activos por área"""
         return await self.repository.get_by_area(db, area)
     
-async def get_estadisticas(self, db: AsyncSession) -> Dict[str, Any]:
+    async def get_estadisticas(self, db: AsyncSession) -> Dict[str, Any]:
         """Obtener estadísticas de empleados"""
         try:
             # Total de empleados activos
@@ -171,12 +171,12 @@ async def get_estadisticas(self, db: AsyncSession) -> Dict[str, Any]:
             logger.error(f"Error obteniendo estadísticas de empleados: {e}")
             return {}
     
-async def validate_empleado_exists(self, db: AsyncSession, empleado_id: UUID) -> bool:
+    async def validate_empleado_exists(self, db: AsyncSession, empleado_id: UUID) -> bool:
         """Validar que un empleado existe y está activo"""
         empleado = await self.repository.get_by_id(db, empleado_id)
         return empleado is not None and empleado.estado == "activo"
     
-async def _generate_qr_code(self, empleado: Empleado) -> str:
+    async def _generate_qr_code(self, empleado: Empleado) -> str:
         """Generar código QR único para el empleado"""
         try:
             # Crear datos únicos para el QR

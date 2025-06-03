@@ -1,0 +1,281 @@
+# 🔐 Sistema de Autenticación y Autorización
+
+## 🚀 Inicialización del Sistema
+
+### Primer Uso
+
+1. **Aplicar migraciones**:
+```bash
+alembic upgrade head
+```
+
+2. **Crear usuario administrador**:
+```bash
+python scripts/init_admin.py --samples
+```
+
+3. **Iniciar servidor**:
+```bash
+uvicorn app.main:app --reload
+```
+
+## 🔑 Autenticación
+
+### Sistema de Roles
+
+- **Super Admin** (`super_admin`): Acceso total al sistema
+- **Admin** (`admin`): Administrador general
+- **Supervisor** (`supervisor`): Supervisor de área
+- **RRHH** (`rrhh`): Personal de recursos humanos
+- **Usuario** (`usuario`): Usuario básico (empleado)
+
+### Flujo de Autenticación
+
+1. **Login**: `POST /api/v1/auth/login`
+```json
+{
+  "email": "admin@hojaverde.com",
+  "password": "Admin123!",
+  "remember_me": false
+}
+```
+
+2. **Usar Access Token**: Incluir en headers
+```
+Authorization: Bearer <access_token>
+```
+
+3. **Renovar Token**: `POST /api/v1/auth/refresh`
+```json
+{
+  "refresh_token": "<refresh_token>"
+}
+```
+
+4. **Logout**: `POST /api/v1/auth/logout`
+
+## 📋 Endpoints de Autenticación
+
+### Autenticación Básica
+- `POST /api/v1/auth/login` - Iniciar sesión
+- `POST /api/v1/auth/logout` - Cerrar sesión
+- `POST /api/v1/auth/logout-all` - Cerrar todas las sesiones
+- `POST /api/v1/auth/refresh` - Renovar token
+
+### Información del Usuario
+- `GET /api/v1/auth/me` - Información del usuario actual
+- `GET /api/v1/auth/validate` - Validar sesión
+- `GET /api/v1/auth/permissions` - Obtener permisos
+- `GET /api/v1/auth/check-permission/{permission}` - Verificar permiso específico
+
+### Reset de Contraseña
+- `POST /api/v1/auth/reset-password` - Solicitar reset
+- `POST /api/v1/auth/confirm-reset` - Confirmar reset
+
+### Gestión de Sesiones
+- `GET /api/v1/auth/sessions` - Sesiones activas
+- `DELETE /api/v1/auth/sessions/{session_id}` - Revocar sesión
+
+## 👥 Endpoints de Usuarios
+
+### CRUD de Usuarios (Requiere permisos de admin)
+- `POST /api/v1/usuarios/` - Crear usuario
+- `GET /api/v1/usuarios/` - Listar usuarios
+- `GET /api/v1/usuarios/{id}` - Obtener usuario
+- `PUT /api/v1/usuarios/{id}` - Actualizar usuario
+- `DELETE /api/v1/usuarios/{id}` - Desactivar usuario
+
+### Gestión de Contraseñas
+- `PUT /api/v1/usuarios/{id}/password` - Cambiar contraseña
+- `POST /api/v1/usuarios/{id}/reset-password` - Reset por admin
+
+### Gestión de Permisos (Requiere permisos de admin)
+- `GET /api/v1/usuarios/{id}/permissions` - Obtener permisos
+- `POST /api/v1/usuarios/{id}/permissions` - Gestionar permisos
+
+### Consultas Especiales
+- `GET /api/v1/usuarios/roles/{rol}` - Usuarios por rol
+- `GET /api/v1/usuarios/inactive/{days}` - Usuarios inactivos
+- `GET /api/v1/usuarios/stats/general` - Estadísticas
+
+### Utilidades
+- `POST /api/v1/usuarios/{id}/activate` - Activar usuario
+- `POST /api/v1/usuarios/{id}/unlock` - Desbloquear usuario
+
+## 🔒 Sistema de Permisos
+
+### Permisos Disponibles
+
+#### Empleados
+- `empleados.crear` - Crear empleados
+- `empleados.leer` - Ver empleados
+- `empleados.actualizar` - Actualizar empleados
+- `empleados.eliminar` - Eliminar empleados
+
+#### Usuarios
+- `usuarios.crear` - Crear usuarios
+- `usuarios.leer` - Ver usuarios
+- `usuarios.actualizar` - Actualizar usuarios
+- `usuarios.eliminar` - Eliminar usuarios
+
+#### Registros
+- `registros.crear` - Crear registros
+- `registros.leer` - Ver registros
+- `registros.actualizar` - Actualizar registros
+- `registros.eliminar` - Eliminar registros
+
+#### Reportes
+- `reportes.generar` - Generar reportes
+- `reportes.exportar` - Exportar reportes
+- `reportes.avanzados` - Reportes avanzados
+
+#### Configuración
+- `configuracion.leer` - Ver configuración
+- `configuracion.actualizar` - Actualizar configuración
+
+#### Auditoría
+- `auditoria.leer` - Ver auditoría
+- `auditoria.exportar` - Exportar auditoría
+
+### Permisos por Rol
+
+#### Super Admin
+- Todos los permisos (`*`)
+
+#### Admin
+- `empleados.*`
+- `usuarios.*`
+- `reportes.*`
+- `configuracion.*`
+- `auditoria.*`
+
+#### Supervisor
+- `empleados.leer`
+- `empleados.actualizar`
+- `registros.*`
+- `reportes.leer`
+
+#### RRHH
+- `empleados.*`
+- `usuarios.leer`
+- `reportes.empleados`
+
+#### Usuario
+- `empleados.leer` (solo su información)
+- `registros.crear` (solo sus registros)
+
+## 🛡️ Seguridad
+
+### Políticas de Contraseña
+- Mínimo 8 caracteres
+- Al menos 1 mayúscula
+- Al menos 1 minúscula
+- Al menos 1 número
+- Al menos 1 carácter especial
+- No puede ser una contraseña común
+
+### Protecciones Implementadas
+- Hash seguro de contraseñas (bcrypt)
+- Tokens JWT con expiración
+- Rate limiting
+- Bloqueo por intentos fallidos
+- Validación de tokens activos
+- Historial de contraseñas (evita reutilización)
+
+### Configuraciones de Seguridad
+```env
+SECRET_KEY=clave-super-secreta-de-al-menos-32-caracteres
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+REFRESH_TOKEN_EXPIRE_DAYS=7
+BCRYPT_ROUNDS=12
+```
+
+## 🧪 Testing
+
+### Ejecutar Tests de Autenticación
+```bash
+pytest tests/test_auth.py -v
+```
+
+### Ejecutar Tests de Usuarios
+```bash
+pytest tests/test_usuarios.py -v
+```
+
+### Tests con Autenticación
+Los tests incluyen fixtures para:
+- Usuario administrador
+- Usuario de RRHH
+- Headers de autenticación
+- Creación de usuarios de prueba
+
+## 📊 Auditoría
+
+### Eventos Registrados
+- Intentos de login (exitosos y fallidos)
+- Cambios de contraseña
+- Creación/modificación de usuarios
+- Asignación de permisos
+- Acceso a recursos protegidos
+
+### Logs de Seguridad
+```
+AUTH SUCCESS: admin@hojaverde.com - Login exitoso
+AUTH FAILED: user@test.com - Credenciales inválidas
+AUTHZ GRANTED: User 123 - Permission 'empleados.crear'
+AUTHZ DENIED: User 456 - Permission 'usuarios.eliminar'
+```
+
+## 🔧 Comandos Útiles
+
+### Crear Usuario Administrador
+```bash
+python scripts/init_admin.py
+```
+
+### Crear Usuarios de Ejemplo
+```bash
+python scripts/init_admin.py --samples
+```
+
+### Verificar Estado del Sistema
+```bash
+python scripts/init_admin.py --status
+```
+
+### Verificar Acceso del Admin
+```bash
+python scripts/init_admin.py --verify
+```
+
+## 🐛 Troubleshooting
+
+### Error: "Token inválido o expirado"
+- Verificar que el token no haya expirado
+- Usar refresh token para obtener uno nuevo
+- Verificar formato: `Bearer <token>`
+
+### Error: "Usuario bloqueado"
+- Esperar 15 minutos o usar endpoint de desbloqueo
+- Verificar intentos fallidos en la base de datos
+
+### Error: "Acceso denegado"
+- Verificar que el usuario tenga los permisos necesarios
+- Revisar el rol del usuario
+- Verificar que el usuario esté activo
+
+### Error de Conexión a Base de Datos
+- Verificar configuración en `.env`
+- Asegurarse de que PostgreSQL esté corriendo
+- Verificar que las migraciones estén aplicadas
+
+## 📚 Próximos Pasos
+
+Con el sistema de autenticación implementado, puedes continuar con:
+
+1. **Registros de Asistencia**: Módulo para registrar entrada/salida
+2. **Sistema de Alimentación**: Registro de comidas
+3. **Reportes Avanzados**: Reportes con autenticación
+4. **API Keys**: Para integraciones externas
+5. **Two-Factor Authentication**: Seguridad adicional
+6. **Frontend**: Interfaz de usuario con Next.js

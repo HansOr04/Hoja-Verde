@@ -1,7 +1,9 @@
 from pydantic_settings import BaseSettings
-from pydantic import ConfigDict, field_validator
+from pydantic import ConfigDict, field_validator, AnyHttpUrl
 from typing import List, Optional, Union
+from datetime import timedelta
 import os
+import secrets
 
 class Settings(BaseSettings):
     # Configuración del modelo (Pydantic v2)
@@ -22,6 +24,7 @@ class Settings(BaseSettings):
     # Base de datos
     database_url: str
     async_database_url: Optional[str] = None
+    database_test_url: Optional[str] = None
     db_pool_size: int = 10
     db_max_overflow: int = 20
     db_pool_timeout: int = 30
@@ -33,12 +36,15 @@ class Settings(BaseSettings):
     supabase_service_role_key: Optional[str] = None
     
     # Seguridad
-    secret_key: str
+    secret_key: str = secrets.token_urlsafe(32)
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     refresh_token_expire_days: int = 7
     jwt_issuer: str = "Sistema-Asistencia-Hojaverde"
     jwt_audience: str = "hojaverde-system"
+    
+    # Password hashing
+    bcrypt_rounds: int = 12
     
     # CORS (como strings para evitar problemas de parsing)
     cors_origins: str = '["http://localhost:3000"]'
@@ -48,6 +54,14 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 60
     rate_limit_per_hour: int = 1000
     rate_limit_per_day: int = 10000
+    requests_per_minute: int = 60
+    
+    # Security headers
+    security_headers_enabled: bool = True
+    
+    # Session configuration
+    session_cookie_name: str = "session"
+    session_max_age: int = 1800  # 30 minutos
     
     # Redis
     redis_url: str = "redis://localhost:6379"
@@ -86,6 +100,10 @@ class Settings(BaseSettings):
     smtp_password: str = ""
     email_from: str = "noreply@hojaverde.com"
     
+    # API Keys para servicios externos
+    email_api_key: Optional[str] = None
+    sms_api_key: Optional[str] = None
+    
     # Deployment
     render_external_url: Optional[str] = None
     health_check_interval: int = 30
@@ -99,13 +117,32 @@ class Settings(BaseSettings):
     # Validadores para convertir strings a booleanos correctamente
     @field_validator('debug', 'password_require_uppercase', 'password_require_lowercase', 
                      'password_require_numbers', 'password_require_symbols', 'smtp_tls', 
-                     'enable_metrics', mode='before')
+                     'enable_metrics', 'security_headers_enabled', mode='before')
     def validate_boolean(cls, v):
         if isinstance(v, str):
             if v.lower() in ('true', '1', 'yes', 'on'):
                 return True
             elif v.lower() in ('false', '0', 'no', 'off'):
                 return False
+        return v
+
+    @field_validator("cors_origins", mode='before')
+    def assemble_cors_origins(cls, v):
+        if isinstance(v, str) and not v.startswith("["):
+            return '["' + '", "'.join([i.strip() for i in v.split(",")]) + '"]'
+        return v
+    
+    @field_validator("database_url", mode='before')
+    def validate_database_url(cls, v):
+        if not v:
+            raise ValueError("DATABASE_URL es requerida")
+        return v
+    
+    @field_validator("secret_key", mode='before')
+    def validate_secret_key(cls, v):
+        if not v or len(v) < 32:
+            # Generar una clave segura si no existe
+            return secrets.token_urlsafe(32)
         return v
 
     @property
@@ -135,5 +172,27 @@ class Settings(BaseSettings):
         except:
             return ["image/jpeg", "image/png", "application/pdf", "text/csv"]
 
+    # Propiedades calculadas para JWT
+    @property
+    def access_token_expire_timedelta(self) -> timedelta:
+        return timedelta(minutes=self.access_token_expire_minutes)
+    
+    @property
+    def refresh_token_expire_timedelta(self) -> timedelta:
+        return timedelta(days=self.refresh_token_expire_days)
+
 # Crear instancia global de configuración
 settings = Settings()
+
+# Configuraciones específicas por ambiente
+def get_database_url() -> str:
+    """Obtener URL de base de datos según el ambiente"""
+    if settings.environment == "test":
+        return settings.database_test_url or settings.database_url.replace("/hojaverde", "/hojaverde_test")
+    return settings.database_url
+
+def get_cors_origins() -> List[str]:
+    """Obtener orígenes CORS según el ambiente"""
+    if settings.debug:
+        return ["http://localhost:3000", "http://localhost:8000", "http://127.0.0.1:3000"]
+    return settings.cors_origins_list

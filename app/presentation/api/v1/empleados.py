@@ -5,6 +5,7 @@ from uuid import UUID
 import logging
 
 from app.core.database import get_db
+from app.core.auth import get_auth_context, AuthContext, require_hr, require_admin  # NUEVO
 from app.domain.services.empleado import empleado_service
 from app.presentation.schemas.empleado import (
     EmpleadoCreate, EmpleadoUpdate, EmpleadoResponse
@@ -139,6 +140,8 @@ async def eliminar_empleado(
     success = await empleado_service.deactivate_empleado(db, empleado_id)
     if not success:
         raise NotFoundError("Empleado", str(empleado_id))
+    
+    return {"message": "Empleado eliminado correctamente"}
 
 @router.get("/area/{area}", response_model=List[EmpleadoResponse])
 async def obtener_empleados_por_area(

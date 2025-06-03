@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from typing import Optional
+from typing import Optional, List, Any
 from datetime import datetime
 from uuid import UUID
 
@@ -31,7 +31,7 @@ class PaginationParams(BaseModel):
 
 class PaginatedResponse(BaseModel):
     """Respuesta paginada genérica"""
-    items: list
+    items: List[Any]
     total: int
     page: int
     size: int

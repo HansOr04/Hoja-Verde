@@ -3,6 +3,10 @@ from app.infrastructure.database.models.registro_diario import RegistroDiario
 from app.infrastructure.database.models.alimentacion import Alimentacion
 from app.core.config import settings
 from app.core.database import Base
+# Importar todos los modelos para que Alembic los detecte
+from app.infrastructure.database.models.empleado import Empleado
+from app.infrastructure.database.models.usuario import Usuario, HistorialPassword  # NUEVO
+from app.infrastructure.database.base import Base
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context

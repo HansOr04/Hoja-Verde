@@ -4,6 +4,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from app.presentation.api.v1 import auth
 import logging
 import time
 
@@ -85,18 +86,17 @@ async def startup_event():
     db_connected = await test_connection()
     if not db_connected:
         logger.error("❌ No se pudo conectar a la base de datos con ninguna estrategia")
-        logger.error("💡 Opciones:")
         logger.error("   1. Verifica tu conexión a internet")
         logger.error("   2. Revisa las credenciales en .env")
         logger.error("   3. Configura una base de datos local para desarrollo")
         logger.error("   4. Comenta 'exit(1)' para trabajar sin BD temporalmente")
         
         # En desarrollo, podrías comentar esta línea para continuar sin BD
-        exit(1)
+        # exit(1)
     else:
-        logger.info("✅ Base de datos conectada correctamente")
+        logger.info(" Base de datos conectada correctamente")
     
-    logger.info("✅ Sistema iniciado correctamente")
+    logger.info(" Sistema iniciado correctamente")
 
 # Evento de cierre
 @app.on_event("shutdown")
@@ -142,6 +142,22 @@ app.include_router(
     empleados.router, 
     prefix="/api/v1/empleados", 
     tags=["empleados"]
+)
+
+# NUEVO: Router de autenticación
+
+app.include_router(
+    auth.router,
+    prefix="/api/v1/auth",
+    tags=["autenticación"]
+)
+
+# NUEVO: Router de usuarios
+from app.presentation.api.v1 import usuarios
+app.include_router(
+    usuarios.router,
+    prefix="/api/v1/usuarios",
+    tags=["usuarios"]
 )
 
 if __name__ == "__main__":

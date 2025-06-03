@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from .base import BaseModel
+from ..base import BaseModel
 
 class Alimentacion(BaseModel):
     """Modelo de registro de alimentación"""

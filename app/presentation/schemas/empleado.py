@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional, List
 from datetime import date
 from decimal import Decimal
 from uuid import UUID
@@ -16,7 +16,8 @@ class EmpleadoBase(BaseModel):
     jornada_horas: Decimal = Field(default=Decimal("8.00"), ge=4, le=12, description="Horas de jornada")
     unidad_productiva: Optional[str] = Field(None, max_length=50, description="Unidad productiva")
     
-    @validator('cedula')
+    @field_validator('cedula')
+    @classmethod
     def validate_cedula(cls, v):
         """Validar formato de cédula ecuatoriana"""
         if not v.isdigit():
@@ -48,14 +49,16 @@ class EmpleadoBase(BaseModel):
         
         return v
     
-    @validator('area')
+    @field_validator('area')
+    @classmethod
     def validate_area(cls, v):
         areas_validas = ['Producción', 'Calidad', 'Mantenimiento', 'Administración']
         if v not in areas_validas:
             raise ValueError(f'Área debe ser una de: {", ".join(areas_validas)}')
         return v
     
-    @validator('cargo')
+    @field_validator('cargo')
+    @classmethod
     def validate_cargo(cls, v):
         cargos_validos = ['Trabajador Agrícola', 'Talento Humano', 'Supervisor', 'Administrador']
         if v not in cargos_validos:
@@ -74,9 +77,10 @@ class EmpleadoUpdate(BaseModel):
     cargo: Optional[str] = None
     jornada_horas: Optional[Decimal] = Field(None, ge=4, le=12)
     unidad_productiva: Optional[str] = Field(None, max_length=50)
-    estado: Optional[str] = Field(None, regex="^(activo|inactivo|suspendido)$")
+    estado: Optional[str] = Field(None, pattern="^(activo|inactivo|suspendido)$")
     
-    @validator('area')
+    @field_validator('area')
+    @classmethod
     def validate_area(cls, v):
         if v is not None:
             areas_validas = ['Producción', 'Calidad', 'Mantenimiento', 'Administración']
@@ -84,7 +88,8 @@ class EmpleadoUpdate(BaseModel):
                 raise ValueError(f'Área debe ser una de: {", ".join(areas_validas)}')
         return v
     
-    @validator('cargo')
+    @field_validator('cargo')
+    @classmethod
     def validate_cargo(cls, v):
         if v is not None:
             cargos_validos = ['Trabajador Agrícola', 'Talento Humano', 'Supervisor', 'Administrador']
@@ -119,5 +124,5 @@ class EmpleadoResponse(BaseSchema):
 
 class EmpleadoList(BaseModel):
     """Schema para lista de empleados"""
-    empleados: list[EmpleadoResponse]
+    empleados: List[EmpleadoResponse]
     total: int

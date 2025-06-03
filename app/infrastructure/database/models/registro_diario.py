@@ -4,7 +4,7 @@ from sqlalchemy.types import DECIMAL
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from .base import BaseModel
+from ..base import BaseModel
 
 class RegistroDiario(BaseModel):
     """Modelo de registro diario de asistencia"""

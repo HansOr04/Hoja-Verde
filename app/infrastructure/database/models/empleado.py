@@ -1,9 +1,9 @@
-from sqlalchemy import Column, String, Date, Boolean, CheckConstraint
+from sqlalchemy import Column, String, Date, Boolean, DateTime, CheckConstraint
 from sqlalchemy.types import DECIMAL
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from .base import BaseModel
+from ..base import BaseModel
 
 class Empleado(BaseModel):
     """Modelo de empleado con validaciones"""
@@ -56,6 +56,13 @@ class Empleado(BaseModel):
             name='check_jornada_horas'
         ),
     )
+    
+    # Relación con usuario (si tiene acceso al sistema)
+    usuario = relationship("Usuario", back_populates="empleado", uselist=False)
+    
+    # Auditoría
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __str__(self):
         return f"{self.nombres} {self.apellidos}"
